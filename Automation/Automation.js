@@ -12,7 +12,7 @@ const ADVANCED_SCORE_COLUMN = 7;
 const GREEN_COLOR = '#93c47d';
 const RED_COLOR = '#e06666';  
 
-// Email settings
+// Email setting
 const EMAIL_SUBJECT_TEMPLATE = '%s Certification Training Completed';
 const EMAIL_BODY_TEMPLATE = `Dear %s,
 
