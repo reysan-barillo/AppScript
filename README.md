@@ -46,7 +46,7 @@ This project is a Google Apps Script designed to automate the generation and ema
 ### 5. **Score Tracker for Active Employees**
 ![Score Tracker for Active Employees](./images/score-tracker-for-active-employees.png)
 
-### 6. **Generated Email with Footer**
+### 6. **Generated Email Example**
 ![Generated Email with Footer](./images/generated-email-with-footer.png)
 
 ### 7. **Generated Certificates in Google Drive**
