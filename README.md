@@ -113,43 +113,11 @@ Automation/
      Training Certification Team`;
      ```
 
-### 6. **Add Email Footer**
-   - The email includes a professional footer with branding and contact information. Below is an example of the footer:
-     ```html
-     <hr style="border: 0; border-top: 1px solid #cccccc; margin: 20px 0;">
-     <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; max-width: 500px;">
-       <tr>
-         <td style="vertical-align: top; width: 150px;">
-           <img src="https://drive.google.com/uc?export=view&id=YOUR_LOGO_ID" alt="Company Logo" style="width: 150px; height: auto;">
-         </td>
-         <td style="vertical-align: top; padding-left: 15px;">
-           <div style="font-size: 16px; font-weight: bold; color: #ff6600;">
-             Your Name
-           </div>
-           <div style="font-size: 12px; font-weight: bold; color: #333333; margin-top: 2px; margin-bottom: 4px;">
-             Your Job Title
-           </div>
-         </td>
-       </tr>
-       <tr>
-         <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
-           Driven by Technology. Delivered by People.
-         </td>
-         <td style="vertical-align: top; padding-left: 15px; padding-top: 5px;">
-           <div style="font-size: 12px;">
-             <a href="mailto:your.email@example.com" style="color: #0066cc; text-decoration: none;">your.email@example.com</a> | 
-             <span>+1234567890</span>
-           </div>
-         </td>
-       </tr>
-     </table>
-     ```
-
-### 7. **Authorize the Script**
+### 6. **Authorize the Script**
    - Save the script and run any function (e.g., `onOpen`) to trigger the authorization process.
    - Grant the necessary permissions.
 
-### 8. **Enable Triggers**
+### 7. **Enable Triggers**
    - Set up a trigger for the `onEdit` function to monitor changes in the Google Sheet:
      - Go to `Triggers` in the Apps Script editor.
      - Add a new trigger for `onEdit`.
