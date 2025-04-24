@@ -508,7 +508,7 @@ function generateCertificatesByType(type) {
     const row = data[i];
     const name = row[NAME_COLUMN - 1];
 
-    if (!name) continue; // Skip rows without a name
+    if (!name) continue; // Skip rows without a names
 
     // Determine which certificates to generate based on type parameter
     const typesToGenerate = [];

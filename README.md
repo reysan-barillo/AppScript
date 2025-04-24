@@ -1,6 +1,6 @@
-# Certificate Automation Script
+# Certificate Automation Script for Excel Training
 
-This project is a Google Apps Script designed to automate the generation and emailing of certification documents based on employee performance data in a Google Sheet. The script integrates with Google Sheets, Google Drive, and Gmail to streamline the certification process.
+This project is a Google Apps Script designed to automate the generation and emailing of certification documents for **Excel Training** based on employee performance data in a Google Sheet. The script integrates with Google Sheets, Google Drive, and Gmail to streamline the certification process.
 
 ---
 
@@ -29,11 +29,44 @@ This project is a Google Apps Script designed to automate the generation and ema
 
 ---
 
+## Screenshots
+
+### 1. **Certificate Auto-Generation Settings**
+![Certificate Auto-Generation Settings](./images/certificate-auto-generation-settings.png)
+
+### 2. **Email Auto-Sending Settings**
+![Email Auto-Sending Settings](./images/email-auto-sending-settings.png)
+
+### 3. **Custom Menu for Certificates**
+![Custom Menu for Certificates](./images/custom-menu-for-certificates.png)
+
+### 4. **Basic Questions Sheet**
+![Basic Questions Sheet](./images/basic-questions-sheet.png)
+
+### 5. **Score Tracker for Active Employees**
+![Score Tracker for Active Employees](./images/score-tracker-for-active-employees.png)
+
+### 6. **Generated Email with Footer**
+![Generated Email with Footer](./images/generated-email-with-footer.png)
+
+### 7. **Generated Certificates in Google Drive**
+![Generated Certificates in Google Drive](./images/generated-certificates-in-google-drive.png)
+
+---
+
 ## File Structure
 
 ```
 Automation/
 ├── Automation.js
+├── images/
+    ├── certificate-auto-generation-settings.png
+    ├── email-auto-sending-settings.png
+    ├── custom-menu-for-certificates.png
+    ├── basic-questions-sheet.png
+    ├── score-tracker-for-active-employees.png
+    ├── generated-email-with-footer.png
+    ├── generated-certificates-in-google-drive.png
 ```
 
 ### Key File:
@@ -52,7 +85,7 @@ Automation/
    - Navigate to `Extensions > Apps Script`.
 
 ### 3. **Add the Script**
-   - Copy the contents of Automation.js and paste it into the Apps Script editor.
+   - Copy the contents of `Automation.js` and paste it into the Apps Script editor.
 
 ### 4. **Set Up Google Drive Folders**
    - Create folders in Google Drive for storing certificates:
