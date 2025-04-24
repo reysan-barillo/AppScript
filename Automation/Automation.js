@@ -756,7 +756,7 @@ function generateCertificatesByType(type) {
   SpreadsheetApp.getUi().alert(`Certificate generation complete!\nGenerated: ${generated}\nSkipped: ${skipped}\nEmails Sent: ${emailsSent}`);
 }
 
-// Add menu options
+// Add ui menu options
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Certificates')

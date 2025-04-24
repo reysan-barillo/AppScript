@@ -109,6 +109,10 @@ Automation/
 
      We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the %s level.
 
+     Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.
+
+     If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.
+
      Best regards,
      Training Certification Team`;
      ```
