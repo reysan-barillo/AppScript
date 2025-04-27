@@ -27,6 +27,13 @@ This project is a Google Apps Script designed to automate the generation and ema
 6. **User-Friendly Menu**:
    - Adds a custom menu to the Google Sheet for easy access to script features.
 
+7. **Status Column Updates**:
+   - Tracks the progress of certificate generation and email sending in a designated status column:
+     - **"Certificate already sent to [email]"**: Indicates that the certificate has already been emailed.
+     - **"Generating Certificate"**: Indicates that the certificate is being generated.
+     - **"Failed Score"**: Indicates that the score did not meet the required threshold.
+     - **"Error during certificate generation"**: Indicates an error occurred during the process.
+
 ---
 
 ## Screenshots
@@ -103,18 +110,14 @@ Automation/
    - Customize the email subject and body in the script:
      ```javascript
      const EMAIL_SUBJECT_TEMPLATE = '%s Certification Training Completed';
-     const EMAIL_BODY_TEMPLATE = `Dear %s,
-
-     Congratulations on successfully completing the Excel %s Certification Training.
-
-     We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the %s level.
-
-     Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.
-
-     If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.
-
-     Best regards,
-     Training Certification Team`;
+     const getHtmlEmailBody = (name, examType) => `
+       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+         <p>Dear ${name},</p>
+         <p>Congratulations on successfully completing the Excel ${examType} Certification Training.</p>
+         <p>We are pleased to present your official certification document, which is attached to this email.</p>
+         <p>Best regards,</p>
+         <p>Training Certification Team</p>
+       </div>`;
      ```
 
 ### 6. **Authorize the Script**
@@ -140,7 +143,14 @@ Automation/
 ### 2. **Highlight Cells**
    - Highlight a score cell green to trigger certificate generation.
 
-### 3. **View Logs**
+### 3. **Status Column**
+   - The script updates the status column to track the progress of certificate generation and email sending:
+     - **"Certificate already sent to [email]"**: Indicates that the certificate has already been emailed.
+     - **"Generating Certificate"**: Indicates that the certificate is being generated.
+     - **"Failed Score"**: Indicates that the score did not meet the required threshold.
+     - **"Error during certificate generation"**: Indicates an error occurred during the process.
+
+### 4. **View Logs**
    - Use the `Logger.log` statements in the script to debug or monitor the process.
 
 ---
