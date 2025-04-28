@@ -1,7 +1,3 @@
-Here’s the updated **README** with the new feature and screenshot added:
-
----
-
 # Certificate Automation Script for Excel Training
 
 This project is a Google Apps Script designed to automate the generation and emailing of certification documents for **Excel Training** based on employee performance data in a Google Sheet. The script integrates with Google Sheets, Google Drive, and Gmail to streamline the certification process.
