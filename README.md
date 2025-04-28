@@ -1,3 +1,7 @@
+Here’s the updated **README** with the new feature and screenshot added:
+
+---
+
 # Certificate Automation Script for Excel Training
 
 This project is a Google Apps Script designed to automate the generation and emailing of certification documents for **Excel Training** based on employee performance data in a Google Sheet. The script integrates with Google Sheets, Google Drive, and Gmail to streamline the certification process.
@@ -24,10 +28,7 @@ This project is a Google Apps Script designed to automate the generation and ema
 5. **Bulk Certificate Generation**:
    - Generate certificates for all employees or specific certification levels.
 
-6. **User-Friendly Menu**:
-   - Adds a custom menu to the Google Sheet for easy access to script features.
-
-7. **Status Column Updates**:
+6. **Status Column Updates**:
    - Tracks the progress of certificate generation and email sending in a designated status column:
      - **"Certificate already sent to [email]"**: Indicates that the certificate has already been emailed.
      - **"Generating Certificate"**: Indicates that the certificate is being generated.
@@ -59,6 +60,9 @@ This project is a Google Apps Script designed to automate the generation and ema
 ### 7. **Generated Certificates in Google Drive**
 ![Generated Certificates in Google Drive](./images/generated-certificates-in-google-drive.png)
 
+### 8. **Status Column Updates**
+![Status Column Updates](./images/status-column-updates.png)
+
 ---
 
 ## File Structure
@@ -74,6 +78,7 @@ Automation/
     ├── score-tracker-for-active-employees.png
     ├── generated-email-with-footer.png
     ├── generated-certificates-in-google-drive.png
+    ├── status-column-updates.png
 ```
 
 ### Key File:
@@ -92,7 +97,7 @@ Automation/
    - Navigate to `Extensions > Apps Script`.
 
 ### 3. **Add the Script**
-   - Copy the contents of `Automation.js` and paste it into the Apps Script editor.
+   - Copy the contents of Automation.js and paste it into the Apps Script editor.
 
 ### 4. **Set Up Google Drive Folders**
    - Create folders in Google Drive for storing certificates:
@@ -194,3 +199,7 @@ This project is licensed under the MIT License. You are free to use, modify, and
 ## Contact
 
 For questions or support, please contact the Training Certification Team at `reysan.aretex@gmail.com`.
+
+---
+
+Let me know if you need further updates!
