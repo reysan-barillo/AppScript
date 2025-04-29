@@ -131,7 +131,12 @@ function onEdit(e) {
       const certificateGenerated = generateSingleCertificate(name, examType, templateId, formattedDate, email, isAutoEmailEnabled);
 
       if (certificateGenerated) {
-        sheet.getRange(row, statusColumn).setValue(`Certificate already sent to ${email}`);
+        if (!isAutoEmailEnabled) {
+          // Update the status column when auto-email is disabled
+          sheet.getRange(row, statusColumn).setValue('Certificate created (Email not sent - auto-email disabled)');
+        } else {
+          sheet.getRange(row, statusColumn).setValue(`Certificate already sent to ${email}`);
+        }
       } else {
         sheet.getRange(row, statusColumn).setValue('Generating Certificate');
       }
@@ -575,11 +580,11 @@ function generateCertificatesByType(type) {
   const data = dataRange.getValues();
   const backgrounds = dataRange.getBackgrounds();
 
-  for (let i = 1; i < data.length; i++) { 
+  for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const name = row[NAME_COLUMN - 1];
 
-    if (!name) continue; 
+    if (!name) continue;
 
     // Determine which certificates to generate based on type parameter
     const typesToGenerate = [];
@@ -591,7 +596,7 @@ function generateCertificatesByType(type) {
           templateId: BASIC_TEMPLATE_ID,
           destFolderId: "1giX-nYnriLX9IemmGpNXHiCtafProbTo",
           questionSheetName: 'Basic Questions',
-          statusColumn: 8 
+          statusColumn: 8
         });
       }
       if (backgrounds[i][INTERMEDIATE_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -600,7 +605,7 @@ function generateCertificatesByType(type) {
           templateId: INTERMEDIATE_TEMPLATE_ID,
           destFolderId: "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv",
           questionSheetName: 'Intermediate Questions',
-          statusColumn: 9 
+          statusColumn: 9
         });
       }
       if (backgrounds[i][ADVANCED_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -609,13 +614,13 @@ function generateCertificatesByType(type) {
           templateId: ADVANCED_TEMPLATE_ID,
           destFolderId: "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic",
           questionSheetName: 'Advanced Questions',
-          statusColumn: 10 
+          statusColumn: 10
         });
       }
     } else {
       // Check only the specific certificate type
       let scoreColumn, templateId, destFolderId, questionSheetName, statusColumn;
-      
+
       if (type === 'Basic') {
         scoreColumn = BASIC_SCORE_COLUMN;
         templateId = BASIC_TEMPLATE_ID;
@@ -635,7 +640,7 @@ function generateCertificatesByType(type) {
         questionSheetName = 'Advanced Questions';
         statusColumn = 10;
       }
-      
+
       // Check if this specific certificate type should be generated
       if (backgrounds[i][scoreColumn - 1].toLowerCase() === GREEN_COLOR) {
         typesToGenerate.push({
@@ -660,9 +665,9 @@ function generateCertificatesByType(type) {
       const questionData = questionSheet.getDataRange().getValues();
       let email = null;
 
-      for (let j = 1; j < questionData.length; j++) { 
-        if (questionData[j][2] === name) { 
-          email = questionData[j][3]; 
+      for (let j = 1; j < questionData.length; j++) {
+        if (questionData[j][2] === name) {
+          email = questionData[j][3];
           break;
         }
       }
@@ -680,7 +685,7 @@ function generateCertificatesByType(type) {
         const destFolder = DriveApp.getFolderById(certInfo.destFolderId);
         const certificateName = `${certInfo.examType} Certificate - ${name}.pdf`;
         let pdfFile = null;
-       
+
         // Check if certificate already exists to avoid duplicates
         const existingFiles = destFolder.getFiles();
         let foundExisting = false;
@@ -693,12 +698,12 @@ function generateCertificatesByType(type) {
             break;
           }
         }
-        
+
         if (!foundExisting) {
           // Create a unique temporary name with timestamp to prevent conflicts
           const tempTimestamp = new Date().getTime();
           const tempName = `${certInfo.examType} Certificate - ${name} (temp-${tempTimestamp})`;
-          
+
           // Make a copy of the template for the employee's certificate
           const newDoc = templateDoc.makeCopy(tempName, destFolder);
           const doc = DocumentApp.openById(newDoc.getId());
@@ -707,17 +712,17 @@ function generateCertificatesByType(type) {
           // Replace placeholders with employee name and current date
           body.replaceText('<<NAME>>', name);
           body.replaceText('<<DATE>>', date);
-         
+
           // Save and close the document
           doc.saveAndClose();
-         
+
           // Convert to PDF
           const pdfBlob = newDoc.getAs('application/pdf');
           pdfFile = destFolder.createFile(pdfBlob).setName(certificateName);
-         
+
           // Delete the temporary Google Doc after PDF creation
           DriveApp.getFileById(newDoc.getId()).setTrashed(true);
-         
+
           Logger.log(`${certInfo.examType} Certificate created for ${name} with date: ${date} in the ${certInfo.examType} folder`);
           generated++;
           // Update the status column to indicate certificate created
@@ -727,13 +732,13 @@ function generateCertificatesByType(type) {
           // Update the status column to indicate certificate already exists
           sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate already exists');
         }
-        
+
         // Send email if requested and we have an email address
         if (isAutoEmailEnabled && email && pdfFile) {
           // Create an email tracking key
           const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${certInfo.examType}_${email}`;
           const props = PropertiesService.getScriptProperties();
-          
+
           // Check if this email has already been sent
           if (props.getProperty(emailKey)) {
             Logger.log(`Email already sent to ${email} for ${certInfo.examType} certificate. Skipping duplicate email.`);
@@ -743,7 +748,7 @@ function generateCertificatesByType(type) {
             try {
               const subject = EMAIL_SUBJECT_TEMPLATE.replace('%s', certInfo.examType);
               const plainBody = EMAIL_BODY_TEMPLATE.replace(/%s/g, name).replace(/%s/g, certInfo.examType).replace(/%s/g, certInfo.examType);
-              
+
               // Create HTML email with proper formatting
               const htmlBody = `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -807,10 +812,10 @@ function generateCertificatesByType(type) {
                   </table>
                 </div>
               `;
-              
+
               // Get the PDF as a blob for attachment
               const pdfBlob = pdfFile.getBlob();
-              
+
               // Send the email with the certificate attached
               GmailApp.sendEmail(
                 email,
@@ -822,13 +827,13 @@ function generateCertificatesByType(type) {
                   name: 'Training Certification Team'
                 }
               );
-              
+
               // Record that this email has been sent
               props.setProperty(emailKey, new Date().toISOString());
-              
+
               // Update the status column to indicate email sent
               sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Certificate already sent to ${email}`);
-              
+
               Logger.log(`Email sent to ${email} with ${certInfo.examType} certificate for ${name}`);
               emailsSent++;
             } catch (emailError) {
@@ -838,8 +843,24 @@ function generateCertificatesByType(type) {
             }
           }
         } else if (!isAutoEmailEnabled && email && pdfFile) {
-          // Auto-email not enabled, update status
-          sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate created (Email not sent - auto-email disabled)');
+          // Auto-email not enabled, update status only for new certificates
+          const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${certInfo.examType}_${email}`;
+          const props = PropertiesService.getScriptProperties();
+
+          // Check if the email has already been sent
+          if (!props.getProperty(emailKey)) {
+            const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
+            // Only update the status if it is not already "Certificate already sent"
+            if (!currentStatus.includes("Certificate already sent")) {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate created (Email not sent - auto-email disabled)');
+            }
+          } else {
+            // If the email was already sent, keep the status as "Certificate already sent"
+            const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
+            if (!currentStatus.includes("Certificate already sent")) {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Certificate already sent to ${email}`);
+            }
+          }
         }
       } catch (e) {
         Logger.log(`Error creating ${certInfo.examType} certificate for ${name}: ${e.toString()}`);
