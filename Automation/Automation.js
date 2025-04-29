@@ -133,7 +133,7 @@ function onEdit(e) {
       if (certificateGenerated) {
         if (!isAutoEmailEnabled) {
           // Update the status column when auto-email is disabled
-          sheet.getRange(row, statusColumn).setValue('Certificate created (Email not sent - auto-email disabled)');
+          sheet.getRange(row, statusColumn).setValue('Certificate is available (Email not sent - auto-email disabled)');
         } else {
           sheet.getRange(row, statusColumn).setValue(`Certificate already sent to ${email}`);
         }
@@ -865,7 +865,7 @@ function generateCertificatesByType(type) {
             const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
             // Only update the status if it is not already "Certificate already sent"
             if (!currentStatus.includes("Certificate already sent")) {
-              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate created (Email not sent - auto-email disabled)');
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate is available (Email not sent - auto-email disabled)');
             }
           } else {
             // If the email was already sent, keep the status as "Certificate already sent"

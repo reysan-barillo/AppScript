@@ -30,6 +30,17 @@ This project is a Google Apps Script designed to automate the generation and ema
      - **"Generating Certificate"**: Indicates that the certificate is being generated.
      - **"Failed Score"**: Indicates that the score did not meet the required threshold.
      - **"Error during certificate generation"**: Indicates an error occurred during the process.
+     - **"Certificate is available (Email not sent - auto-email disabled)"**: Indicates that the certificate has been generated and saved to Google Drive but not emailed.
+
+---
+
+## Additional Notes
+
+- Certificates that are generated but not yet sent will only be saved to Google Drive. The status for such certificates will be **"Certificate is available (Email not sent - auto-email disabled)"**.
+- To send these certificates to the employee's email, you need to first enable the **Email Auto-Sending** option in the **Certificate UI Menu**. After that, generate the certificates again (e.g., **Generate Basic Certificates**). Don't worry, it will not generate a new certificate; instead, it will send the certificate that has already been generated but not yet sent to the employee's email.
+- To generate certificates for specific types (e.g., Basic, Intermediate, or Advanced), select the corresponding option in the **Certificate UI Menu** based on the type of exam you want to generate the certificate for.
+- If you want to generate certificates but not send them to the employee's email, disable the **Email Auto-Sending** option in the **Certificate UI Menu**.
+- Once the certificate is sent, the status will update to **"Certificate already sent to [email]"** (e.g., **"Certificate already sent to reysanbarillo3@gmail.com"**).
 
 ---
 
@@ -150,6 +161,7 @@ Automation/
      - **"Generating Certificate"**: Indicates that the certificate is being generated.
      - **"Failed Score"**: Indicates that the score did not meet the required threshold.
      - **"Error during certificate generation"**: Indicates an error occurred during the process.
+     - **"Certificate is available (Email not sent - auto-email disabled)"**: Indicates that the certificate has been generated and saved to Google Drive but not emailed.
 
 ### 4. **View Logs**
    - Use the `Logger.log` statements in the script to debug or monitor the process.
@@ -197,5 +209,3 @@ This project is licensed under the MIT License. You are free to use, modify, and
 For questions or support, please contact the Training Certification Team at `reysan.aretex@gmail.com`.
 
 ---
-
-Let me know if you need further updates!
