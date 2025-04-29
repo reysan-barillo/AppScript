@@ -71,21 +71,21 @@ function onEdit(e) {
     templateId = BASIC_TEMPLATE_ID;
     destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
     questionSheetName = 'Basic Questions';
-    statusColumn = 8; // Status for Basic Certificate
+    statusColumn = 8; 
   } else if (column === INTERMEDIATE_SCORE_COLUMN) {
     examType = 'Intermediate';
     scoreColumn = INTERMEDIATE_SCORE_COLUMN;
     templateId = INTERMEDIATE_TEMPLATE_ID;
     destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
     questionSheetName = 'Intermediate Questions';
-    statusColumn = 9; // Status for Intermediate Certificate
+    statusColumn = 9; 
   } else if (column === ADVANCED_SCORE_COLUMN) {
     examType = 'Advanced';
     scoreColumn = ADVANCED_SCORE_COLUMN;
     templateId = ADVANCED_TEMPLATE_ID;
     destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
     questionSheetName = 'Advanced Questions';
-    statusColumn = 10; // Status for Advanced Certificate
+    statusColumn = 10; 
   } else {
     return;
   }
@@ -93,11 +93,14 @@ function onEdit(e) {
   if (score >= 18) {
     e.range.setBackground(GREEN_COLOR);
 
+    const sheet = e.range.getSheet();
+
     if (!isAutoGenerationEnabled) {
+      // Update the status column with "Certificate is available" when auto-generation is disabled
+      sheet.getRange(row, statusColumn).setValue('Certificate is available');
       return;
     }
 
-    const sheet = e.range.getSheet();
     const name = sheet.getRange(row, NAME_COLUMN).getValue();
 
     const questionSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(questionSheetName);
