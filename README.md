@@ -206,6 +206,47 @@ Automation/
      - Go to `Triggers` in the Apps Script editor.
      - Add a new trigger for `onEdit`.
 
+### 8. Set Up Destination Folders for Certificates
+
+- Create separate folders in Google Drive for storing certificates based on certification levels:
+  - **Basic Certificates Folder**
+  - **Intermediate Certificates Folder**
+  - **Advanced Certificates Folder**
+- Get the folder IDs for each of these folders:
+  - Right-click on the folder in Google Drive and select **Get Link**.
+  - Extract the folder ID from the link. For example, if the link is `https://drive.google.com/drive/folders/1A2B3C4D5E6F7G8H9I`, the folder ID is `1A2B3C4D5E6F7G8H9I`.
+- Update the `destFolderId` in the script for each certification level:
+  ```javascript
+  if (column === BASIC_SCORE_COLUMN) {
+      examType = 'Basic';
+      scoreColumn = BASIC_SCORE_COLUMN;
+      templateId = BASIC_TEMPLATE_ID;
+      // Update this folder ID with the ID of the "Basic Certificates" folder in Google Drive
+      destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
+      questionSheetName = 'Basic Questions';
+      statusColumn = 8; 
+  } else if (column === INTERMEDIATE_SCORE_COLUMN) {
+      examType = 'Intermediate';
+      scoreColumn = INTERMEDIATE_SCORE_COLUMN;
+      templateId = INTERMEDIATE_TEMPLATE_ID;
+      // Update this folder ID with the ID of the "Intermediate Certificates" folder in Google Drive
+      destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
+      questionSheetName = 'Intermediate Questions';
+      statusColumn = 9; 
+  } else if (column === ADVANCED_SCORE_COLUMN) {
+      examType = 'Advanced';
+      scoreColumn = ADVANCED_SCORE_COLUMN;
+      templateId = ADVANCED_TEMPLATE_ID;
+      // Update this folder ID with the ID of the "Advanced Certificates" folder in Google Drive
+      destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
+      questionSheetName = 'Advanced Questions';
+      statusColumn = 10; 
+  } else {
+      return;
+  }
+  ```
+- Replace the placeholder folder IDs (`YOUR_BASIC_CERT_FOLDER_ID`, etc.) with the actual folder IDs from your Google Drive.
+
 ---
 
 ## Usage
