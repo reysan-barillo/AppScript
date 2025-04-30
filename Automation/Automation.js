@@ -586,19 +586,6 @@ function generateCertificatesByType(type) {
 
     if (!name) continue;
 
-    // Check if all scores are empty
-    const basicScore = row[BASIC_SCORE_COLUMN - 1];
-    const intermediateScore = row[INTERMEDIATE_SCORE_COLUMN - 1];
-    const advancedScore = row[ADVANCED_SCORE_COLUMN - 1];
-
-    if (!basicScore && !intermediateScore && !advancedScore) {
-      // Update the status columns for employees with no scores
-      sheet.getRange(i + 1, 8).setValue('Certificate is available'); // Basic status column
-      sheet.getRange(i + 1, 9).setValue('Certificate is available'); // Intermediate status column
-      sheet.getRange(i + 1, 10).setValue('Certificate is available'); // Advanced status column
-      continue; // Skip further processing for this row
-    }
-
     // Determine which certificates to generate based on type parameter
     const typesToGenerate = [];
     if (type === 'all') {
