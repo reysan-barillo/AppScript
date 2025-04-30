@@ -39,9 +39,9 @@ This project is a Google Apps Script designed to automate the generation and ema
 - Certificates that are generated but not yet sent will only be saved to Google Drive. The status for such certificates will be **"Certificate is available (Email not sent - auto-email disabled)"**.
 - To send these certificates to the employee's email, you need to first enable the **Email Auto-Sending** option in the **Certificate UI Menu**. After that, generate the certificates again (e.g., **Generate Basic Certificates**). Don't worry, it will not generate a new certificate; instead, it will send the certificate that has already been generated but not yet sent to the employee's email.
 - To generate certificates for specific types (e.g., Basic, Intermediate, or Advanced), select the corresponding option in the **Certificate UI Menu** based on the type of exam you want to generate the certificate for.
-- If you want to generate certificates but not send them to the employee's email, disable the **Email Auto-Sending** option in the **Certificate UI Menu** and generate certificates by types (e.g., **Generate Basic Certificates**).
+- If you want to generate certificates but not send them to the employee's email, disable the **Email Auto-Sending** option in the **Certificate UI Menu**.
+- If you enable **Certificate Auto-Generation**, when you input a score, it will automatically generate a certificate and send it to the employee's email if **Email Auto-Sending** is enabled. If **Email Auto-Sending** is disabled, it will only generate the certificate and save it to Google Drive. To generate a single certificate for an employee without sending it via email, first disable **Email Auto-Sending**, then enable **Certificate Auto-Generation**.
 - Once the certificate is sent, the status will update to **"Certificate already sent to [email]"** (e.g., **"Certificate already sent to reysanbarillo3@gmail.com"**).
-
 ---
 
 ## Screenshots
