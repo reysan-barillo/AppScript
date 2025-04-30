@@ -106,17 +106,18 @@ Automation/
 ### 3. **Add the Script**
    - Copy the contents of Automation.js and paste it into the Apps Script editor.
 
-### 4. **Set Up Google Drive Folders**
-   - Create folders in Google Drive for storing certificates:
-     - Basic Certificates
-     - Intermediate Certificates
-     - Advanced Certificates
-   - Update the folder IDs in the script:
-     ```javascript
-     const BASIC_TEMPLATE_ID = 'YOUR_BASIC_TEMPLATE_ID';
-     const INTERMEDIATE_TEMPLATE_ID = 'YOUR_INTERMEDIATE_TEMPLATE_ID';
-     const ADVANCED_TEMPLATE_ID = 'YOUR_ADVANCED_TEMPLATE_ID';
-     ```
+### 4. Set Up Certificate Templates in Google Docs
+- Create Google Docs templates for each certification level:
+  - Basic Certificate Template
+  - Intermediate Certificate Template
+  - Advanced Certificate Template
+- Update the template IDs in the script with the corresponding Google Docs template IDs:
+  ```javascript
+  const BASIC_TEMPLATE_ID = 'YOUR_BASIC_TEMPLATE_ID';
+  const INTERMEDIATE_TEMPLATE_ID = 'YOUR_INTERMEDIATE_TEMPLATE_ID';
+  const ADVANCED_TEMPLATE_ID = 'YOUR_ADVANCED_TEMPLATE_ID';
+  ```
+- Ensure that each template contains placeholders like `<<NAME>>` and `<<DATE>>` for dynamic content replacement.
 
 ### 5. **Set Up Email Templates**
    - Customize the email subject and body in the script:
