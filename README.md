@@ -221,7 +221,7 @@ Automation/
       examType = 'Basic';
       scoreColumn = BASIC_SCORE_COLUMN;
       templateId = BASIC_TEMPLATE_ID;
-      // Update this folder ID with the ID of the "Basic Certificates" folder in Google Drive
+      // Update this folder ID with the ID of the "Basic Certificates" folder in Google Drive.
       destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
       questionSheetName = 'Basic Questions';
       statusColumn = 8; 
@@ -229,7 +229,7 @@ Automation/
       examType = 'Intermediate';
       scoreColumn = INTERMEDIATE_SCORE_COLUMN;
       templateId = INTERMEDIATE_TEMPLATE_ID;
-      // Update this folder ID with the ID of the "Intermediate Certificates" folder in Google Drive
+      // Update this folder ID with the ID of the "Intermediate Certificates" folder in Google Drive.
       destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
       questionSheetName = 'Intermediate Questions';
       statusColumn = 9; 
@@ -237,7 +237,7 @@ Automation/
       examType = 'Advanced';
       scoreColumn = ADVANCED_SCORE_COLUMN;
       templateId = ADVANCED_TEMPLATE_ID;
-      // Update this folder ID with the ID of the "Advanced Certificates" folder in Google Drive
+      // Update this folder ID with the ID of the "Advanced Certificates" folder in Google Drive.
       destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
       questionSheetName = 'Advanced Questions';
       statusColumn = 10; 
