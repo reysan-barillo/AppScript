@@ -65,7 +65,7 @@ This project is a Google Apps Script designed to automate the generation and ema
 ![Generated Email with Footer](./images/generated-email-with-footer.png)
 
 ### 7. **Generated Certificates in Google Drive**
-![Generated Certificates in Google Drive](./images/generated-certificates-in-google-drive.png)
+![Generated Certificates in Google Drive]
 
 ### 8. **Status Column Updates**
 ![Status Column Updates](./images/status-column-updates.png)
