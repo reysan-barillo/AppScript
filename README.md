@@ -120,18 +120,82 @@ Automation/
 - Ensure that each template contains placeholders like `<<NAME>>` and `<<DATE>>` for dynamic content replacement.
 
 ### 5. **Set Up Email Templates**
-   - Customize the email subject and body in the script:
-     ```javascript
-     const EMAIL_SUBJECT_TEMPLATE = '%s Certification Training Completed';
-     const getHtmlEmailBody = (name, examType) => `
-       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-         <p>Dear ${name},</p>
-         <p>Congratulations on successfully completing the Excel ${examType} Certification Training.</p>
-         <p>We are pleased to present your official certification document, which is attached to this email.</p>
-         <p>Best regards,</p>
-         <p>Training Certification Team</p>
-       </div>`;
-     ```
+
+- Customize the email body and signature to match your organization's branding.
+- The email template is defined in the script as `htmlBody`. It includes placeholders for dynamic content such as the employee's name and certification type.
+- Example email template:
+
+  ```javascript
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <p>Dear ${certData.name},</p>
+      <p>Congratulations on successfully completing the Excel ${certData.examType} Certification Training.</p>
+      <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${certData.examType} level.</p>
+      <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.</p>
+      <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
+      <p>Best regards,</p>
+      <p>Training Certification Team</p>
+      <hr style="border: 0; border-top: 1px solid #cccccc; margin: 20px 0;">
+      
+      <!-- Email Signature -->
+      <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; max-width: 500px;">
+        <tr>
+          <!-- Left column with logo -->
+          <td style="vertical-align: top; width: 150px;">
+            <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
+          </td>
+          
+          <!-- Right column with name and title -->
+          <td style="vertical-align: top; padding-left: 15px;">
+            <div style="font-size: 16px; font-weight: bold; color: #ff6600;">
+              Miki H. Burro
+            </div>
+            <div style="font-size: 12px; font-weight: bold; color: #333333; margin-top: 2px; margin-bottom: 4px;">
+              WORKFORCE EXPERIENCE - STAFF II
+            </div>
+          </td>
+        </tr>
+        
+        <!-- Tagline and contact info row -->
+        <tr>
+          <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
+            Driven by Technology. Delivered by People.
+          </td>
+          <td style="vertical-align: top; padding-left: 15px; padding-top: 5px;">
+            <div style="font-size: 12px;">
+              <a href="mailto:miki.burro@aretex.com.au" style="color: #0066cc; text-decoration: none;">miki.burro@aretex.com.au</a> | 
+              <span>+639955190265</span>
+            </div>
+          </td>
+        </tr>
+        
+        <!-- Social media row -->
+        <tr>
+          <td colspan="2" style="padding-top: 5px;">
+            <div style="background-color: #2a3698; padding: 8px; text-align: right;">
+              <a href="https://www.facebook.com" style="display: inline-block; margin-right: 5px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook" style="width: 20px; height: 20px;">
+              </a>
+              <a href="https://www.linkedin.com" style="display: inline-block; margin-right: 5px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn" style="width: 20px; height: 20px;">
+              </a>
+              <a href="https://www.aretex.com.au" style="display: inline-block;">
+                <img src="https://cdn-icons-png.flaticon.com/512/11024/11024036.png" alt="Website" style="width: 20px; height: 20px;">
+              </a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+  ```
+
+- Replace placeholders like `${certData.name}` and `${certData.examType}` with dynamic values from your script.
+- Update the logo, contact information, and social media links to reflect your organization's details.
+- This template is used in the following functions:
+  - **`generateCertificatesByType()`**: Generates certificates for a specified exam type (e.g., Basic, Intermediate, or Advanced) by processing the corresponding rows in the Google Sheet and optionally sending the certificates via email.
+  - **`generateSingleCertificate()`**: Handles the creation of a single certificate and optionally sends it via email.
+  - **`processAutoGenerateCertificate()`**: Processes the automatic generation of certificates based on the script's properties.
 
 ### 6. **Authorize the Script**
    - Save the script and run any function (e.g., `onOpen`) to trigger the authorization process.
