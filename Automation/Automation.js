@@ -7,6 +7,9 @@ const NAME_COLUMN = 2;
 const BASIC_SCORE_COLUMN = 5;
 const INTERMEDIATE_SCORE_COLUMN = 6;
 const ADVANCED_SCORE_COLUMN = 7;
+const CERTIFICATE_VALIDITY_MONTHS = 12; 
+const EXPIRATION_COLUMN = 11; 
+const EXPIRATION_REMINDER_DAYS = 30; 
 
 // Define color codes for Google Sheets
 const GREEN_COLOR = '#93c47d';
@@ -20,7 +23,7 @@ Congratulations on successfully completing the Excel %s Certification Training.
 
 We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the %s level.
 
-Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.
+Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.
 
 If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.
 
@@ -63,7 +66,7 @@ function onEdit(e) {
   }
 
   const score = parseInt(editedValue, 10);
-  let examType, scoreColumn, templateId, destFolderId, questionSheetName, statusColumn;
+  let examType, scoreColumn, templateId, destFolderId, questionSheetName, statusColumn, expirationColumn;
 
   if (column === BASIC_SCORE_COLUMN) {
     examType = 'Basic';
@@ -72,6 +75,7 @@ function onEdit(e) {
     destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
     questionSheetName = 'Basic Questions';
     statusColumn = 8; 
+    expirationColumn = 11; // Column K
   } else if (column === INTERMEDIATE_SCORE_COLUMN) {
     examType = 'Intermediate';
     scoreColumn = INTERMEDIATE_SCORE_COLUMN;
@@ -79,6 +83,7 @@ function onEdit(e) {
     destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
     questionSheetName = 'Intermediate Questions';
     statusColumn = 9; 
+    expirationColumn = 12; // Column L
   } else if (column === ADVANCED_SCORE_COLUMN) {
     examType = 'Advanced';
     scoreColumn = ADVANCED_SCORE_COLUMN;
@@ -86,6 +91,7 @@ function onEdit(e) {
     destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
     questionSheetName = 'Advanced Questions';
     statusColumn = 10; 
+    expirationColumn = 13; // Column M
   } else {
     return;
   }
@@ -137,6 +143,22 @@ function onEdit(e) {
         } else {
           sheet.getRange(row, statusColumn).setValue(`Certificate already sent to ${email}`);
         }
+
+        // Calculate and update the expiration date
+        const destFolder = DriveApp.getFolderById(destFolderId);
+        const certificateName = `${examType} Certificate - ${name}.pdf`;
+        const files = destFolder.getFilesByName(certificateName);
+
+        if (files.hasNext()) {
+          const pdfFile = files.next();
+          const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
+          const expirationDate = new Date(creationDate); // Use the creation date as the base
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+
+          sheet.getRange(row, expirationColumn).setValue(
+            `Expires on ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`
+          );
+        }
       } else {
         sheet.getRange(row, statusColumn).setValue('Generating Certificate');
       }
@@ -154,17 +176,17 @@ function onEdit(e) {
 function processAutoGenerateCertificate() {
   const props = PropertiesService.getScriptProperties();
   const allProps = props.getProperties();
- 
+
   let certificatesGenerated = 0;
   let emailsSent = 0;
- 
+
   // Map to track existing certificates for each folder
   let existingCertificatesByFolder = {
     "1giX-nYnriLX9IemmGpNXHiCtafProbTo": new Map(),
     "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv": new Map(),
-    "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic": new Map()  
+    "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic": new Map()
   };
- 
+
   // Build a list of all existing certificates in each folder to prevent duplicates
   try {
     // Check Basic folder
@@ -174,7 +196,7 @@ function processAutoGenerateCertificate() {
       const file = allFiles.next();
       existingCertificatesByFolder["1giX-nYnriLX9IemmGpNXHiCtafProbTo"].set(file.getName().toLowerCase(), file.getId());
     }
-   
+
     // Check Intermediate folder
     const intermediateFolder = DriveApp.getFolderById("171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv");
     allFiles = intermediateFolder.getFiles();
@@ -182,7 +204,7 @@ function processAutoGenerateCertificate() {
       const file = allFiles.next();
       existingCertificatesByFolder["171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv"].set(file.getName().toLowerCase(), file.getId());
     }
-   
+
     // Check Advanced folder
     const advancedFolder = DriveApp.getFolderById("1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic");
     allFiles = advancedFolder.getFiles();
@@ -190,12 +212,12 @@ function processAutoGenerateCertificate() {
       const file = allFiles.next();
       existingCertificatesByFolder["1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic"].set(file.getName().toLowerCase(), file.getId());
     }
-   
+
     Logger.log(`Found existing certificates - Basic: ${existingCertificatesByFolder["1giX-nYnriLX9IemmGpNXHiCtafProbTo"].size}, Intermediate: ${existingCertificatesByFolder["171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv"].size}, Advanced: ${existingCertificatesByFolder["1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic"].size}`);
   } catch (e) {
     Logger.log(`Error building certificate map: ${e.toString()}`);
   }
- 
+
   // Now process certificate generation requests
   for (const key in allProps) {
     if (key.includes('_') && (key.includes('Basic') || key.includes('Intermediate') || key.includes('Advanced'))) {
@@ -205,10 +227,10 @@ function processAutoGenerateCertificate() {
         const destFolderId = certData.destFolderId;
         let pdfFileId = null;
         let pdfFile = null;
-       
+
         // Check if certificate already exists before generating
         if (existingCertificatesByFolder[destFolderId].has(certificateName.toLowerCase())) {
-          Logger.log(`${certData.examType} Certificate for ${certData.name} already exists in the ${certData.examType} folder, using existing for email`);
+          Logger.log(`${certData.examType} Certificate for ${certData.name} already exists in the ${certData.examType} folder.`);
           // Get the existing file ID for email attachment
           pdfFileId = existingCertificatesByFolder[destFolderId].get(certificateName.toLowerCase());
           pdfFile = DriveApp.getFileById(pdfFileId);
@@ -216,11 +238,11 @@ function processAutoGenerateCertificate() {
           // Generate the certificate and convert to PDF, cleaning up the Google Doc
           const templateDoc = DriveApp.getFileById(certData.templateId);
           const destFolder = DriveApp.getFolderById(destFolderId);
-         
+
           // Make a copy of the template for the employee's certificate with timestamp to avoid conflicts
           const tempTimestamp = new Date().getTime();
           const tempName = `${certData.examType} Certificate - ${certData.name} (temp-${tempTimestamp})`;
-          
+
           const newDoc = templateDoc.makeCopy(tempName, destFolder);
           const doc = DocumentApp.openById(newDoc.getId());
           const body = doc.getBody();
@@ -228,30 +250,39 @@ function processAutoGenerateCertificate() {
           // Replace placeholders with employee name and current date
           body.replaceText('<<NAME>>', certData.name);
           body.replaceText('<<DATE>>', certData.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "MMMM d, yyyy"));
-         
+
           // Save and close the document
           doc.saveAndClose();
-         
+
           // Convert to PDF
           const pdfBlob = newDoc.getAs('application/pdf');
           pdfFile = destFolder.createFile(pdfBlob).setName(certificateName);
           pdfFileId = pdfFile.getId();
-         
+
           // Delete the temporary Google Doc after PDF creation
           DriveApp.getFileById(newDoc.getId()).setTrashed(true);
-         
+
           // Add the newly created file to our map to prevent duplicates within the same batch
           existingCertificatesByFolder[destFolderId].set(certificateName.toLowerCase(), pdfFileId);
-         
+
           certificatesGenerated++;
           Logger.log(`${certData.examType} Certificate automatically created for ${certData.name} with date: ${certData.date}`);
         }
-        
+
+        // Calculate and log the expiration date based on the file's creation date
+        if (pdfFile) {
+          const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
+          const expirationDate = new Date(creationDate); // Use the creation date as the base
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+
+          Logger.log(`Expiration date for ${certData.name}'s ${certData.examType} certificate: ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`);
+        }
+
         // Send email if enabled and we have an email address
         if (certData.sendEmail && certData.email && pdfFileId) {
           // Create an email tracking key
           const emailKey = `EMAIL_SENT_${certData.name.replace(/\s+/g, '_')}_${certData.examType}_${certData.email}`;
-          
+
           // Check if this email has already been sent
           if (props.getProperty(emailKey)) {
             Logger.log(`Email already sent to ${certData.email} for ${certData.examType} certificate. Skipping duplicate email.`);
@@ -259,14 +290,14 @@ function processAutoGenerateCertificate() {
             try {
               const subject = EMAIL_SUBJECT_TEMPLATE.replace('%s', certData.examType);
               const plainBody = EMAIL_BODY_TEMPLATE.replace(/%s/g, certData.name).replace(/%s/g, certData.examType).replace(/%s/g, certData.examType);
-              
-              // Create HTML email with proper formatting - matching the format in generateCertificatesByType
-              const htmlBody = `
+
+              // HTML email body remains untouched
+               const htmlBody = `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                   <p>Dear ${certData.name},</p>
                   <p>Congratulations on successfully completing the Excel ${certData.examType} Certification Training.</p>
                   <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${certData.examType} level.</p>
-                  <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.</p>
+                  <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.</p>
                   <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
                   <p>Best regards,</p>
                   <p>Training Certification Team</p>
@@ -279,28 +310,11 @@ function processAutoGenerateCertificate() {
                       <td style="vertical-align: top; width: 150px;">
                         <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
                       </td>
-                      
-                      <!-- Right column with name and title -->
-                      <td style="vertical-align: top; padding-left: 15px;">
-                        <div style="font-size: 16px; font-weight: bold; color: #ff6600;">
-                          Miki H. Burro
-                        </div>
-                        <div style="font-size: 12px; font-weight: bold; color: #333333; margin-top: 2px; margin-bottom: 4px;">
-                          WORKFORCE EXPERIENCE - STAFF II
-                        </div>
-                      </td>
-                    </tr>
-                    
+                     
                     <!-- Tagline and contact info row -->
                     <tr>
                       <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
                         Driven by Technology. Delivered by People.
-                      </td>
-                      <td style="vertical-align: top; padding-left: 15px; padding-top: 5px;">
-                        <div style="font-size: 12px;">
-                          <a href="mailto:miki.burro@aretex.com.au" style="color: #0066cc; text-decoration: none;">miki.burro@aretex.com.au</a> | 
-                          <span>+639955190265</span>
-                        </div>
                       </td>
                     </tr>
                     
@@ -323,7 +337,7 @@ function processAutoGenerateCertificate() {
                   </table>
                 </div>
               `;
-              
+
               // Get the PDF as a blob for attachment
               const pdfBlob = pdfFile.getBlob();
 
@@ -331,9 +345,9 @@ function processAutoGenerateCertificate() {
               GmailApp.sendEmail(
                 certData.email,
                 subject,
-                plainBody, 
+                plainBody,
                 {
-                  htmlBody: htmlBody, 
+                  htmlBody: htmlBody,
                   attachments: [pdfBlob],
                   name: 'Training Certification Team'
                 }
@@ -349,7 +363,7 @@ function processAutoGenerateCertificate() {
             }
           }
         }
-        
+
         // Clean up the property regardless
         props.deleteProperty(key);
       } catch (e) {
@@ -357,7 +371,7 @@ function processAutoGenerateCertificate() {
       }
     }
   }
- 
+
   // Clean up the trigger
   const triggers = ScriptApp.getProjectTriggers();
   for (const trigger of triggers) {
@@ -365,7 +379,7 @@ function processAutoGenerateCertificate() {
       ScriptApp.deleteTrigger(trigger);
     }
   }
- 
+
   if (certificatesGenerated > 0 || emailsSent > 0) {
     Logger.log(`Auto-generated ${certificatesGenerated} certificates and sent ${emailsSent} emails`);
   }
@@ -384,13 +398,13 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
     Logger.log(`Invalid exam type: ${examType}`);
     return false;
   }
- 
+
   try {
     const templateDoc = DriveApp.getFileById(templateId);
     const destFolder = DriveApp.getFolderById(destFolderId);
     const certificateName = `${examType} Certificate - ${name}.pdf`;
     let pdfFile = null;
-   
+
     // Check if certificate already exists to avoid duplicates
     const existingFiles = destFolder.getFiles();
     let foundExisting = false;
@@ -403,12 +417,12 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
         break;
       }
     }
-    
+
     if (!foundExisting) {
       // Create a unique temporary name with timestamp to prevent conflicts
       const tempTimestamp = new Date().getTime();
       const tempName = `${examType} Certificate - ${name} (temp-${tempTimestamp})`;
-      
+
       // Make a copy of the template for the employee's certificate
       const newDoc = templateDoc.makeCopy(tempName, destFolder);
       const doc = DocumentApp.openById(newDoc.getId());
@@ -417,26 +431,35 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
       // Replace placeholders with employee name and current date
       body.replaceText('<<NAME>>', name);
       body.replaceText('<<DATE>>', date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "MMMM d, yyyy"));
-     
+
       // Save and close the document
       doc.saveAndClose();
-     
+
       // Convert to PDF
       const pdfBlob = newDoc.getAs('application/pdf');
       pdfFile = destFolder.createFile(pdfBlob).setName(certificateName);
-     
+
       // Delete the temporary Google Doc after PDF creation
       DriveApp.getFileById(newDoc.getId()).setTrashed(true);
-     
+
       Logger.log(`${examType} Certificate created for ${name} with date: ${date} in the ${examType} folder`);
     }
-    
+
+    // Calculate and update the expiration date based on the file's creation date
+    if (pdfFile) {
+      const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
+      const expirationDate = new Date(creationDate); // Use the creation date as the base
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+
+      Logger.log(`Expiration date for ${name}'s ${examType} certificate: ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`);
+    }
+
     // Send email if requested and we have an email address
     if (sendEmail && email && pdfFile) {
       // Create an email tracking key
       const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${examType}_${email}`;
       const props = PropertiesService.getScriptProperties();
-      
+
       // Check if this email has already been sent
       if (props.getProperty(emailKey)) {
         Logger.log(`Email already sent to ${email} for ${examType} certificate. Skipping duplicate email.`);
@@ -444,14 +467,14 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
         try {
           const subject = EMAIL_SUBJECT_TEMPLATE.replace('%s', examType);
           const plainBody = EMAIL_BODY_TEMPLATE.replace(/%s/g, name).replace(/%s/g, examType).replace(/%s/g, examType);
-          
-          // Create HTML email with proper formatting - matching the format in generateCertificatesByType
-          const htmlBody = `
+
+          // Create HTML email with proper formatting
+         const htmlBody = `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
               <p>Dear ${name},</p>
               <p>Congratulations on successfully completing the Excel ${examType} Certification Training.</p>
               <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${examType} level.</p>
-              <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.</p>
+              <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.</p>
               <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
               <p>Best regards,</p>
               <p>Training Certification Team</p>
@@ -481,12 +504,6 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
                   <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
                     Driven by Technology. Delivered by People.
                   </td>
-                  <td style="vertical-align: top; padding-left: 15px; padding-top: 5px;">
-                    <div style="font-size: 12px;">
-                      <a href="mailto:miki.burro@aretex.com.au" style="color: #0066cc; text-decoration: none;">miki.burro@aretex.com.au</a> | 
-                      <span>+639955190265</span>
-                    </div>
-                  </td>
                 </tr>
                 
                 <!-- Social media row -->
@@ -508,10 +525,10 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
               </table>
             </div>
           `;
-          
+
           // Get the PDF as a blob for attachment
           const pdfBlob = pdfFile.getBlob();
-          
+
           // Send the email with the certificate attached
           GmailApp.sendEmail(
             email,
@@ -523,10 +540,10 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
               name: 'Training Certification Team'
             }
           );
-          
+
           // Record that this email has been sent
           props.setProperty(emailKey, new Date().toISOString());
-          
+
           Logger.log(`Email sent to ${email} with ${examType} certificate for ${name}`);
           return true;
         } catch (emailError) {
@@ -535,7 +552,7 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
         }
       }
     }
-   
+
     return true;
   } catch (e) {
     Logger.log(`Error creating ${examType} certificate for ${name}: ${e.toString()}`);
@@ -596,7 +613,8 @@ function generateCertificatesByType(type) {
           templateId: BASIC_TEMPLATE_ID,
           destFolderId: "1giX-nYnriLX9IemmGpNXHiCtafProbTo",
           questionSheetName: 'Basic Questions',
-          statusColumn: 8
+          statusColumn: 8,
+          expirationColumn: 11 // Column K
         });
       }
       if (backgrounds[i][INTERMEDIATE_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -605,7 +623,8 @@ function generateCertificatesByType(type) {
           templateId: INTERMEDIATE_TEMPLATE_ID,
           destFolderId: "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv",
           questionSheetName: 'Intermediate Questions',
-          statusColumn: 9
+          statusColumn: 9,
+          expirationColumn: 12 // Column L
         });
       }
       if (backgrounds[i][ADVANCED_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -614,12 +633,13 @@ function generateCertificatesByType(type) {
           templateId: ADVANCED_TEMPLATE_ID,
           destFolderId: "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic",
           questionSheetName: 'Advanced Questions',
-          statusColumn: 10
+          statusColumn: 10,
+          expirationColumn: 13 // Column M
         });
       }
     } else {
       // Check only the specific certificate type
-      let scoreColumn, templateId, destFolderId, questionSheetName, statusColumn;
+      let scoreColumn, templateId, destFolderId, questionSheetName, statusColumn, expirationColumn;
 
       if (type === 'Basic') {
         scoreColumn = BASIC_SCORE_COLUMN;
@@ -627,18 +647,21 @@ function generateCertificatesByType(type) {
         destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
         questionSheetName = 'Basic Questions';
         statusColumn = 8;
+        expirationColumn = 11; // Column K
       } else if (type === 'Intermediate') {
         scoreColumn = INTERMEDIATE_SCORE_COLUMN;
         templateId = INTERMEDIATE_TEMPLATE_ID;
         destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
         questionSheetName = 'Intermediate Questions';
         statusColumn = 9;
+        expirationColumn = 12; // Column L
       } else if (type === 'Advanced') {
         scoreColumn = ADVANCED_SCORE_COLUMN;
         templateId = ADVANCED_TEMPLATE_ID;
         destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
         questionSheetName = 'Advanced Questions';
         statusColumn = 10;
+        expirationColumn = 13; // Column M
       }
 
       // Check if this specific certificate type should be generated
@@ -648,7 +671,8 @@ function generateCertificatesByType(type) {
           templateId: templateId,
           destFolderId: destFolderId,
           questionSheetName: questionSheetName,
-          statusColumn: statusColumn
+          statusColumn: statusColumn,
+          expirationColumn: expirationColumn
         });
       }
     }
@@ -733,6 +757,17 @@ function generateCertificatesByType(type) {
           sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate already exists');
         }
 
+        // Calculate and update the expiration date
+        if (pdfFile) {
+          const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
+          const expirationDate = new Date(creationDate); // Use the creation date as the base
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+
+          sheet.getRange(i + 1, certInfo.expirationColumn).setValue(
+            `Expires on ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`
+          );
+        }
+
         // Send email if requested and we have an email address
         if (isAutoEmailEnabled && email && pdfFile) {
           // Create an email tracking key
@@ -755,7 +790,7 @@ function generateCertificatesByType(type) {
                   <p>Dear ${name},</p>
                   <p>Congratulations on successfully completing the Excel ${certInfo.examType} Certification Training.</p>
                   <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${certInfo.examType} level.</p>
-                  <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities. We encourage you to add this Excel certification to your professional profile and resume.</p>
+                  <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.</p>
                   <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
                   <p>Best regards,</p>
                   <p>Training Certification Team</p>
@@ -768,28 +803,11 @@ function generateCertificatesByType(type) {
                       <td style="vertical-align: top; width: 150px;">
                         <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
                       </td>
-                      
-                      <!-- Right column with name and title -->
-                      <td style="vertical-align: top; padding-left: 15px;">
-                        <div style="font-size: 16px; font-weight: bold; color: #ff6600;">
-                          Miki H. Burro
-                        </div>
-                        <div style="font-size: 12px; font-weight: bold; color: #333333; margin-top: 2px; margin-bottom: 4px;">
-                          WORKFORCE EXPERIENCE - STAFF II
-                        </div>
-                      </td>
-                    </tr>
                     
                     <!-- Tagline and contact info row -->
                     <tr>
                       <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
                         Driven by Technology. Delivered by People.
-                      </td>
-                      <td style="vertical-align: top; padding-left: 15px; padding-top: 5px;">
-                        <div style="font-size: 12px;">
-                          <a href="mailto:miki.burro@aretex.com.au" style="color: #0066cc; text-decoration: none;">miki.burro@aretex.com.au</a> | 
-                          <span>+639955190265</span>
-                        </div>
                       </td>
                     </tr>
                     
@@ -840,25 +858,6 @@ function generateCertificatesByType(type) {
               Logger.log(`Error sending email to ${email}: ${emailError.toString()}`);
               // Update the status column to indicate email error
               sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Error sending email: ${emailError.message}`);
-            }
-          }
-        } else if (!isAutoEmailEnabled && email && pdfFile) {
-          // Auto-email not enabled, update status only for new certificates
-          const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${certInfo.examType}_${email}`;
-          const props = PropertiesService.getScriptProperties();
-
-          // Check if the email has already been sent
-          if (!props.getProperty(emailKey)) {
-            const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
-            // Only update the status if it is not already "Certificate already sent"
-            if (!currentStatus.includes("Certificate already sent")) {
-              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate is available (Email not sent - auto-email disabled)');
-            }
-          } else {
-            // If the email was already sent, keep the status as "Certificate already sent"
-            const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
-            if (!currentStatus.includes("Certificate already sent")) {
-              sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Certificate already sent to ${email}`);
             }
           }
         }
