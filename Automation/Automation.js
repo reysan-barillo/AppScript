@@ -100,7 +100,7 @@ function onEdit(e) {
 
     if (!isAutoGenerationEnabled) {
       // Update the status column with "Certificate is available" when auto-generation is disabled
-      sheet.getRange(row, statusColumn).setValue('Certificate is available');
+      sheet.getRange(row, statusColumn).setValue('Certificate is available (ready to be generated)');
       return;
     }
 
