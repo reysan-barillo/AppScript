@@ -7,13 +7,11 @@ const NAME_COLUMN = 2;
 const BASIC_SCORE_COLUMN = 5;
 const INTERMEDIATE_SCORE_COLUMN = 6;
 const ADVANCED_SCORE_COLUMN = 7;
-const CERTIFICATE_VALIDITY_MONTHS = 12; 
-const EXPIRATION_COLUMN = 11; 
-const EXPIRATION_REMINDER_DAYS = 30; 
+const CERTIFICATE_VALIDITY_MONTHS = 12;
 
 // Define color codes for Google Sheets
 const GREEN_COLOR = '#93c47d';
-const RED_COLOR = '#e06666';  
+const RED_COLOR = '#e06666';
 
 // Email settings
 const EMAIL_SUBJECT_TEMPLATE = '%s Certification Training Completed';
@@ -30,6 +28,8 @@ If you have any questions regarding your certification or wish to explore additi
 Best regards,
 Training Certification Team`;
 
+
+// Update the onEdit function
 function onEdit(e) {
   const isAutoGenerationEnabled = PropertiesService.getScriptProperties().getProperty('AUTO_CERT_GENERATION_ENABLED') === 'true';
   const isAutoEmailEnabled = PropertiesService.getScriptProperties().getProperty('AUTO_EMAIL_ENABLED') === 'true';
@@ -46,27 +46,27 @@ function onEdit(e) {
   }
 
   // Only process if this is a score column
-  if (column !== BASIC_SCORE_COLUMN && 
-      column !== INTERMEDIATE_SCORE_COLUMN && 
+  if (column !== BASIC_SCORE_COLUMN &&
+      column !== INTERMEDIATE_SCORE_COLUMN &&
       column !== ADVANCED_SCORE_COLUMN) {
     return;
   }
 
   const editedValue = e.range.getValue();
-  
+
   // If cell is completely cleared (not just set to 0), then don't change formatting
   if (editedValue === null || editedValue === "") {
-    return; 
+    return;
   }
-  
+
   // Check if value is not a valid number
   if (isNaN(editedValue)) {
-    e.range.setBackground(RED_COLOR); 
+    e.range.setBackground(RED_COLOR);
     return;
   }
 
   const score = parseInt(editedValue, 10);
-  let examType, scoreColumn, templateId, destFolderId, questionSheetName, statusColumn, expirationColumn;
+  let examType, scoreColumn, templateId, destFolderId, questionSheetName, statusColumn;
 
   if (column === BASIC_SCORE_COLUMN) {
     examType = 'Basic';
@@ -74,24 +74,21 @@ function onEdit(e) {
     templateId = BASIC_TEMPLATE_ID;
     destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
     questionSheetName = 'Basic Questions';
-    statusColumn = 8; 
-    expirationColumn = 11; // Column K
+    statusColumn = 8;
   } else if (column === INTERMEDIATE_SCORE_COLUMN) {
     examType = 'Intermediate';
     scoreColumn = INTERMEDIATE_SCORE_COLUMN;
     templateId = INTERMEDIATE_TEMPLATE_ID;
     destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
     questionSheetName = 'Intermediate Questions';
-    statusColumn = 9; 
-    expirationColumn = 12; // Column L
+    statusColumn = 9;
   } else if (column === ADVANCED_SCORE_COLUMN) {
     examType = 'Advanced';
     scoreColumn = ADVANCED_SCORE_COLUMN;
     templateId = ADVANCED_TEMPLATE_ID;
     destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
     questionSheetName = 'Advanced Questions';
-    statusColumn = 10; 
-    expirationColumn = 13; // Column M
+    statusColumn = 10;
   } else {
     return;
   }
@@ -137,27 +134,16 @@ function onEdit(e) {
       const certificateGenerated = generateSingleCertificate(name, examType, templateId, formattedDate, email, isAutoEmailEnabled);
 
       if (certificateGenerated) {
+        const expirationDate = new Date(currentDate);
+        expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+        const validUntilText = `Valid until ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`;
+
         if (!isAutoEmailEnabled) {
-          // Update the status column when auto-email is disabled
-          sheet.getRange(row, statusColumn).setValue('Certificate is available (Email not sent - auto-email disabled)');
+          // Update status for certificate created but not sent
+          sheet.getRange(row, statusColumn).setValue(`Certificate is ready (not yet sent to email)`);
         } else {
-          sheet.getRange(row, statusColumn).setValue(`Certificate already sent to ${email}`);
-        }
-
-        // Calculate and update the expiration date
-        const destFolder = DriveApp.getFolderById(destFolderId);
-        const certificateName = `${examType} Certificate - ${name}.pdf`;
-        const files = destFolder.getFilesByName(certificateName);
-
-        if (files.hasNext()) {
-          const pdfFile = files.next();
-          const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
-          const expirationDate = new Date(creationDate); // Use the creation date as the base
-          expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
-
-          sheet.getRange(row, expirationColumn).setValue(
-            `Expires on ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`
-          );
+          // Update the status column when email is sent
+          sheet.getRange(row, statusColumn).setValue(`Certificate already sent (${validUntilText})`);
         }
       } else {
         sheet.getRange(row, statusColumn).setValue('Generating Certificate');
@@ -173,9 +159,11 @@ function onEdit(e) {
   }
 }
 
+// Update the processAutoGenerateCertificate function
 function processAutoGenerateCertificate() {
   const props = PropertiesService.getScriptProperties();
   const allProps = props.getProperties();
+  const isAutoEmailEnabled = props.getProperty('AUTO_EMAIL_ENABLED') === 'true';
 
   let certificatesGenerated = 0;
   let emailsSent = 0;
@@ -385,6 +373,7 @@ function processAutoGenerateCertificate() {
   }
 }
 
+// Update the generateSingleCertificate function
 function generateSingleCertificate(name, examType, templateId, date, email = null, sendEmail = false) {
   // Determine the appropriate destination folder
   let destFolderId;
@@ -613,8 +602,7 @@ function generateCertificatesByType(type) {
           templateId: BASIC_TEMPLATE_ID,
           destFolderId: "1giX-nYnriLX9IemmGpNXHiCtafProbTo",
           questionSheetName: 'Basic Questions',
-          statusColumn: 8,
-          expirationColumn: 11 // Column K
+          statusColumn: 8
         });
       }
       if (backgrounds[i][INTERMEDIATE_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -623,8 +611,7 @@ function generateCertificatesByType(type) {
           templateId: INTERMEDIATE_TEMPLATE_ID,
           destFolderId: "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv",
           questionSheetName: 'Intermediate Questions',
-          statusColumn: 9,
-          expirationColumn: 12 // Column L
+          statusColumn: 9
         });
       }
       if (backgrounds[i][ADVANCED_SCORE_COLUMN - 1].toLowerCase() === GREEN_COLOR) {
@@ -633,13 +620,12 @@ function generateCertificatesByType(type) {
           templateId: ADVANCED_TEMPLATE_ID,
           destFolderId: "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic",
           questionSheetName: 'Advanced Questions',
-          statusColumn: 10,
-          expirationColumn: 13 // Column M
+          statusColumn: 10
         });
       }
     } else {
       // Check only the specific certificate type
-      let scoreColumn, templateId, destFolderId, questionSheetName, statusColumn, expirationColumn;
+      let scoreColumn, templateId, destFolderId, questionSheetName, statusColumn;
 
       if (type === 'Basic') {
         scoreColumn = BASIC_SCORE_COLUMN;
@@ -647,21 +633,18 @@ function generateCertificatesByType(type) {
         destFolderId = "1giX-nYnriLX9IemmGpNXHiCtafProbTo";
         questionSheetName = 'Basic Questions';
         statusColumn = 8;
-        expirationColumn = 11; // Column K
       } else if (type === 'Intermediate') {
         scoreColumn = INTERMEDIATE_SCORE_COLUMN;
         templateId = INTERMEDIATE_TEMPLATE_ID;
         destFolderId = "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv";
         questionSheetName = 'Intermediate Questions';
         statusColumn = 9;
-        expirationColumn = 12; // Column L
       } else if (type === 'Advanced') {
         scoreColumn = ADVANCED_SCORE_COLUMN;
         templateId = ADVANCED_TEMPLATE_ID;
         destFolderId = "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic";
         questionSheetName = 'Advanced Questions';
         statusColumn = 10;
-        expirationColumn = 13; // Column M
       }
 
       // Check if this specific certificate type should be generated
@@ -671,8 +654,7 @@ function generateCertificatesByType(type) {
           templateId: templateId,
           destFolderId: destFolderId,
           questionSheetName: questionSheetName,
-          statusColumn: statusColumn,
-          expirationColumn: expirationColumn
+          statusColumn: statusColumn
         });
       }
     }
@@ -749,115 +731,149 @@ function generateCertificatesByType(type) {
 
           Logger.log(`${certInfo.examType} Certificate created for ${name} with date: ${date} in the ${certInfo.examType} folder`);
           generated++;
-          // Update the status column to indicate certificate created
-          sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate created');
+          
+          // Check current status before updating
+          const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
+          
+          // Only update status if it doesn't already indicate "Certificate already sent"
+          if (!currentStatus.includes("Certificate already sent")) {
+            // Update status based on whether auto-email is enabled
+            if (!isAutoEmailEnabled) {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate is ready (not yet sent to email)');
+            } else {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate created');
+            }
+          }
         } else {
           skipped++;
-          // Update the status column to indicate certificate already exists
-          sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate already exists');
+          
+          // Check current status before updating
+          const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
+          
+          // Only update status if it doesn't already indicate "Certificate already sent"
+          if (!currentStatus.includes("Certificate already sent")) {
+            // Update status based on whether auto-email is enabled
+            if (!isAutoEmailEnabled) {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate is ready (not yet sent to email)');
+            } else {
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue('Certificate already exists');
+            }
+          }
         }
 
-        // Calculate and update the expiration date
+        // Calculate the expiration date
         if (pdfFile) {
           const creationDate = pdfFile.getDateCreated(); // Get the file's creation date
           const expirationDate = new Date(creationDate); // Use the creation date as the base
           expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Add 1 year
+          const formattedExpDate = Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy");
 
-          sheet.getRange(i + 1, certInfo.expirationColumn).setValue(
-            `Expires on ${Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy")}`
-          );
-        }
+          // Send email if requested and we have an email address
+          if (isAutoEmailEnabled && email && pdfFile) {
+            // Create an email tracking key
+            const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${certInfo.examType}_${email}`;
+            const props = PropertiesService.getScriptProperties();
 
-        // Send email if requested and we have an email address
-        if (isAutoEmailEnabled && email && pdfFile) {
-          // Create an email tracking key
-          const emailKey = `EMAIL_SENT_${name.replace(/\s+/g, '_')}_${certInfo.examType}_${email}`;
-          const props = PropertiesService.getScriptProperties();
-
-          // Check if this email has already been sent
-          if (props.getProperty(emailKey)) {
-            Logger.log(`Email already sent to ${email} for ${certInfo.examType} certificate. Skipping duplicate email.`);
-            // Update the status column to indicate email already sent
-            sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Certificate already sent to ${email}`);
-          } else {
-            try {
-              const subject = EMAIL_SUBJECT_TEMPLATE.replace('%s', certInfo.examType);
-              const plainBody = EMAIL_BODY_TEMPLATE.replace(/%s/g, name).replace(/%s/g, certInfo.examType).replace(/%s/g, certInfo.examType);
-
-              // Create HTML email with proper formatting
-              const htmlBody = `
-                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                  <p>Dear ${name},</p>
-                  <p>Congratulations on successfully completing the Excel ${certInfo.examType} Certification Training.</p>
-                  <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${certInfo.examType} level.</p>
-                  <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.</p>
-                  <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
-                  <p>Best regards,</p>
-                  <p>Training Certification Team</p>
-                  <hr style="border: 0; border-top: 1px solid #cccccc; margin: 20px 0;">
-                  
-                  <!-- Email Signature -->
-                  <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; max-width: 500px;">
-                    <tr>
-                      <!-- Left column with logo -->
-                      <td style="vertical-align: top; width: 150px;">
-                        <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
-                      </td>
-                    
-                    <!-- Tagline and contact info row -->
-                    <tr>
-                      <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
-                        Driven by Technology. Delivered by People.
-                      </td>
-                    </tr>
-                    
-                    <!-- Social media row -->
-                    <tr>
-                      <td colspan="2" style="padding-top: 5px;">
-                        <div style="background-color: #2a3698; padding: 8px; text-align: right;">
-                          <a href="https://www.facebook.com" style="display: inline-block; margin-right: 5px;">
-                            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook" style="width: 20px; height: 20px;">
-                          </a>
-                          <a href="https://www.linkedin.com" style="display: inline-block; margin-right: 5px;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn" style="width: 20px; height: 20px;">
-                          </a>
-                          <a href="https://www.aretex.com.au" style="display: inline-block;">
-                            <img src="https://cdn-icons-png.flaticon.com/512/11024/11024036.png" alt="Website" style="width: 20px; height: 20px;">
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              `;
-
-              // Get the PDF as a blob for attachment
-              const pdfBlob = pdfFile.getBlob();
-
-              // Send the email with the certificate attached
-              GmailApp.sendEmail(
-                email,
-                subject,
-                plainBody,
-                {
-                  htmlBody: htmlBody,
-                  attachments: [pdfBlob],
-                  name: 'Training Certification Team'
-                }
+            // Check if this email has already been sent
+            if (props.getProperty(emailKey)) {
+              Logger.log(`Email already sent to ${email} for ${certInfo.examType} certificate. Skipping duplicate email.`);
+              // Update the status column to include the expiration date
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue(
+                `Certificate already sent (Valid until ${formattedExpDate})`
               );
+            } else {
+              try {
+                const subject = EMAIL_SUBJECT_TEMPLATE.replace('%s', certInfo.examType);
+                const plainBody = EMAIL_BODY_TEMPLATE.replace(/%s/g, name).replace(/%s/g, certInfo.examType).replace(/%s/g, certInfo.examType);
 
-              // Record that this email has been sent
-              props.setProperty(emailKey, new Date().toISOString());
+                // Create HTML email with proper formatting
+                const htmlBody = `
+                  <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <p>Dear ${name},</p>
+                    <p>Congratulations on successfully completing the Excel ${certInfo.examType} Certification Training.</p>
+                    <p>We are pleased to present your official certification document, which is attached to this email. This certification recognizes your proficiency with Microsoft Excel and validates your expertise at the ${certInfo.examType} level.</p>
+                    <p>Your achievement demonstrates both your commitment to developing valuable data analysis skills and your investment in expanding your professional capabilities.</p>
+                    <p>If you have any questions regarding your certification or wish to explore additional Excel training opportunities, please do not hesitate to contact us.</p>
+                    <p>Best regards,</p>
+                    <p>Training Certification Team</p>
+                    <hr style="border: 0; border-top: 1px solid #cccccc; margin: 20px 0;">
+                    
+                    <!-- Email Signature -->
+                    <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; max-width: 500px;">
+                      <tr>
+                        <!-- Left column with logo -->
+                        <td style="vertical-align: top; width: 150px;">
+                          <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
+                        </td>
+                      
+                      <!-- Tagline and contact info row -->
+                      <tr>
+                        <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
+                          Driven by Technology. Delivered by People.
+                        </td>
+                      </tr>
+                      
+                      <!-- Social media row -->
+                      <tr>
+                        <td colspan="2" style="padding-top: 5px;">
+                          <div style="background-color: #2a3698; padding: 8px; text-align: right;">
+                            <a href="https://www.facebook.com" style="display: inline-block; margin-right: 5px;">
+                              <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook" style="width: 20px; height: 20px;">
+                            </a>
+                            <a href="https://www.linkedin.com" style="display: inline-block; margin-right: 5px;">
+                              <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn" style="width: 20px; height: 20px;">
+                            </a>
+                            <a href="https://www.aretex.com.au" style="display: inline-block;">
+                              <img src="https://cdn-icons-png.flaticon.com/512/11024/11024036.png" alt="Website" style="width: 20px; height: 20px;">
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                `;
 
-              // Update the status column to indicate email sent
-              sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Certificate already sent to ${email}`);
+                // Get the PDF as a blob for attachment
+                const pdfBlob = pdfFile.getBlob();
 
-              Logger.log(`Email sent to ${email} with ${certInfo.examType} certificate for ${name}`);
-              emailsSent++;
-            } catch (emailError) {
-              Logger.log(`Error sending email to ${email}: ${emailError.toString()}`);
-              // Update the status column to indicate email error
-              sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Error sending email: ${emailError.message}`);
+                // Send the email with the certificate attached
+                GmailApp.sendEmail(
+                  email,
+                  subject,
+                  plainBody,
+                  {
+                    htmlBody: htmlBody,
+                    attachments: [pdfBlob],
+                    name: 'Training Certification Team'
+                  }
+                );
+
+                // Record that this email has been sent
+                props.setProperty(emailKey, new Date().toISOString());
+
+                Logger.log(`Email sent to ${email} with ${certInfo.examType} certificate for ${name}`);
+                emailsSent++;
+                
+                // Update the status to show email sent with expiration date
+                sheet.getRange(i + 1, certInfo.statusColumn).setValue(
+                  `Certificate sent (Valid until ${formattedExpDate})`
+                );
+              } catch (emailError) {
+                Logger.log(`Error sending email to ${email}: ${emailError.toString()}`);
+                // Update the status column to indicate email error
+                sheet.getRange(i + 1, certInfo.statusColumn).setValue(`Error sending email: ${emailError.message}`);
+              }
+            }
+          } else if (!isAutoEmailEnabled && pdfFile) {
+            // Check current status before updating
+            const currentStatus = sheet.getRange(i + 1, certInfo.statusColumn).getValue();
+            
+            // Only update status if it doesn't already indicate "Certificate already sent"
+            if (!currentStatus.includes("Certificate already sent")) {
+              // If auto-email is disabled, just note the expiration date in the status
+              sheet.getRange(i + 1, certInfo.statusColumn).setValue(
+                `Certificate is ready (not yet sent to email)`
+              );
             }
           }
         }
