@@ -159,10 +159,6 @@ function onEdit(e) {
   }
 }
 
-/**
- * Automatically sends notification emails for certificates that are about to expire
- * This script should be set up as a time-driven trigger to run periodically (e.g., weekly or monthly)
- */
 function sendCertificateExpirationNotices() {
   const NOTIFICATION_DAYS = 30; // Days before expiration to send notification
   

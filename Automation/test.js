@@ -1,4 +1,3 @@
-
 function testCertificateExpirationNotices() {
     const NOTIFICATION_DAYS = 30; // Days before expiration to send notification
     
