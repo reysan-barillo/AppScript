@@ -159,6 +159,230 @@ function onEdit(e) {
   }
 }
 
+/**
+ * Automatically sends notification emails for certificates that are about to expire
+ * This script should be set up as a time-driven trigger to run periodically (e.g., weekly or monthly)
+ */
+function sendCertificateExpirationNotices() {
+  const NOTIFICATION_DAYS = 30; // Days before expiration to send notification
+  
+  // Folder IDs for each certificate type
+  const FOLDER_IDS = {
+    "Basic": "1giX-nYnriLX9IemmGpNXHiCtafProbTo",
+    "Intermediate": "171I3Ll59dNHCFxhE7wkg3GPxtfwg_fnv", 
+    "Advanced": "1f0XCRnGgmFPkOVsHHilm7B8Z5er3keic"
+  };
+  
+  // Email template
+  const EMAIL_SUBJECT = "Your Excel %s Certification is About to Expire";
+  const EMAIL_BODY = `Dear %s,
+
+Your Excel %s Certification will expire on %s (in approximately %s days).
+
+To maintain your certified status, please consider scheduling a recertification exam at your earliest convenience.
+
+If you have any questions about the recertification process, please contact us.
+
+Best regards,
+Training Certification Team`;
+
+  const HTML_EMAIL_BODY = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <p>Dear %s,</p>
+      <p>Your Excel <strong>%s Certification</strong> will expire on <strong>%s</strong> (in approximately <strong>%s days</strong>).</p>
+      <p>To maintain your certified status, please consider scheduling a recertification exam at your earliest convenience.</p>
+      <p>If you have any questions about the recertification process, please contact us.</p>
+      <p>Best regards,</p>
+      <p>Training Certification Team</p>
+      <hr style="border: 0; border-top: 1px solid #cccccc; margin: 20px 0;">
+      
+      <!-- Email Signature -->
+      <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; max-width: 500px;">
+        <tr>
+          <!-- Left column with logo -->
+          <td style="vertical-align: top; width: 150px;">
+            <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
+          </td>
+        </tr>
+        <!-- Tagline and contact info row -->
+        <tr>
+          <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
+            Driven by Technology. Delivered by People.
+          </td>
+        </tr>
+        
+        <!-- Social media row -->
+        <tr>
+          <td colspan="2" style="padding-top: 5px;">
+            <div style="background-color: #2a3698; padding: 8px; text-align: right;">
+              <a href="https://www.facebook.com" style="display: inline-block; margin-right: 5px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" alt="Facebook" style="width: 20px; height: 20px;">
+              </a>
+              <a href="https://www.linkedin.com" style="display: inline-block; margin-right: 5px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn" style="width: 20px; height: 20px;">
+              </a>
+              <a href="https://www.aretex.com.au" style="display: inline-block;">
+                <img src="https://cdn-icons-png.flaticon.com/512/11024/11024036.png" alt="Website" style="width: 20px; height: 20px;">
+              </a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+  
+  // Get the current date for comparison
+  const currentDate = new Date();
+  
+  // Track the counts
+  let noticesSent = 0;
+  let notificationsToSend = [];
+  
+  // Process each certificate type
+  for (const [examType, folderId] of Object.entries(FOLDER_IDS)) {
+    try {
+      const folder = DriveApp.getFolderById(folderId);
+      const files = folder.getFiles();
+      
+      while (files.hasNext()) {
+        const file = files.next();
+        
+        // Only process PDF files (certificates)
+        if (file.getMimeType() === "application/pdf" && file.getName().includes("Certificate")) {
+          const creationDate = file.getDateCreated();
+          
+          // Calculate expiration date (1 year after creation)
+          const expirationDate = new Date(creationDate);
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+          
+          // Calculate days until expiration
+          const daysUntilExpiration = Math.floor((expirationDate - currentDate) / (1000 * 60 * 60 * 24));
+          
+          // If certificate is about to expire within the notification window
+          if (daysUntilExpiration > 0 && daysUntilExpiration <= NOTIFICATION_DAYS) {
+            // Extract employee name from the certificate filename
+            // Format is typically "{ExamType} Certificate - {Name}.pdf"
+            const fileName = file.getName();
+            const nameMatch = fileName.match(/Certificate - (.+?)\.pdf$/);
+            
+            if (nameMatch && nameMatch[1]) {
+              const employeeName = nameMatch[1];
+              
+              // Find employee's email from relevant question sheet
+              const questionSheetName = `${examType} Questions`;
+              const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(questionSheetName);
+              
+              if (sheet) {
+                const questionData = sheet.getDataRange().getValues();
+                let employeeEmail = null;
+                
+                // Find the email in the question sheet (assuming name is in column C and email in column D)
+                for (let i = 1; i < questionData.length; i++) {
+                  if (questionData[i][2] === employeeName) {
+                    employeeEmail = questionData[i][3];
+                    break;
+                  }
+                }
+                
+                if (employeeEmail) {
+                  // Format dates for readability
+                  const formattedExpirationDate = Utilities.formatDate(expirationDate, Session.getScriptTimeZone(), "MMMM d, yyyy");
+                  
+                  // Create an email tracking key to avoid duplicate notifications
+                  const notificationKey = `EXPIRATION_NOTICE_${employeeName.replace(/\s+/g, '_')}_${examType}_${formattedExpirationDate}`;
+                  const props = PropertiesService.getScriptProperties();
+                  
+                  // Check if this notification has already been sent
+                  if (!props.getProperty(notificationKey)) {
+                    notificationsToSend.push({
+                      name: employeeName,
+                      email: employeeEmail,
+                      examType: examType,
+                      expirationDate: formattedExpirationDate,
+                      daysRemaining: daysUntilExpiration,
+                      notificationKey: notificationKey
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      Logger.log(`Error processing ${examType} certificates: ${error.toString()}`);
+    }
+  }
+  
+  // Now send all the notifications
+  for (const notification of notificationsToSend) {
+    try {
+      // Format email content
+      const subject = EMAIL_SUBJECT.replace('%s', notification.examType);
+      const plainBody = EMAIL_BODY
+        .replace('%s', notification.name)
+        .replace('%s', notification.examType)
+        .replace('%s', notification.expirationDate)
+        .replace('%s', notification.daysRemaining);
+      
+      const htmlBody = HTML_EMAIL_BODY
+        .replace('%s', notification.name)
+        .replace('%s', notification.examType)
+        .replace('%s', notification.expirationDate)
+        .replace('%s', notification.daysRemaining);
+      
+      // Send email
+      GmailApp.sendEmail(
+        notification.email,
+        subject,
+        plainBody,
+        {
+          htmlBody: htmlBody,
+          name: 'Training Certification Team'
+        }
+      );
+      
+      // Record that this notification has been sent
+      PropertiesService.getScriptProperties().setProperty(notification.notificationKey, new Date().toISOString());
+      
+      noticesSent++;
+      Logger.log(`Expiration notice sent to ${notification.email} for ${notification.examType} certificate (expires on ${notification.expirationDate})`);
+    } catch (emailError) {
+      Logger.log(`Error sending expiration notice to ${notification.email}: ${emailError.toString()}`);
+    }
+  }
+  
+  Logger.log(`Certificate expiration notice process complete. Sent ${noticesSent} notifications.`);
+  
+  // Return summary for when manually testing
+  return `Certificate expiration check complete. Sent ${noticesSent} notifications for certificates expiring within ${NOTIFICATION_DAYS} days.`;
+}
+
+function setupExpirationNoticeTrigger() {
+  // Delete any existing triggers for this function to avoid duplicates
+  const existingTriggers = ScriptApp.getProjectTriggers();
+  for (const trigger of existingTriggers) {
+    if (trigger.getHandlerFunction() === 'sendCertificateExpirationNotices') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+  
+  // Create a new weekly trigger (runs every Monday at 9 AM)
+  ScriptApp.newTrigger('sendCertificateExpirationNotices')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(9)
+    .create();
+  
+  Logger.log('Weekly trigger for certificate expiration notices has been created.');
+  return 'Weekly trigger for certificate expiration notices has been created.';
+}
+
+function testExpirationNotices() {
+  const result = sendCertificateExpirationNotices();
+  Logger.log(result);
+}
+
 // Update the processAutoGenerateCertificate function
 function processAutoGenerateCertificate() {
   const props = PropertiesService.getScriptProperties();
@@ -476,18 +700,7 @@ function generateSingleCertificate(name, examType, templateId, date, email = nul
                   <td style="vertical-align: top; width: 150px;">
                     <img src="https://drive.google.com/uc?export=view&id=1Ato1vcuVK4PaxRDOFibaTH38OZnYHnei" alt="Aretex Logo" style="width: 150px; height: auto;">
                   </td>
-                  
-                  <!-- Right column with name and title -->
-                  <td style="vertical-align: top; padding-left: 15px;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ff6600;">
-                      Miki H. Burro
-                    </div>
-                    <div style="font-size: 12px; font-weight: bold; color: #333333; margin-top: 2px; margin-bottom: 4px;">
-                      WORKFORCE EXPERIENCE - STAFF II
-                    </div>
-                  </td>
-                </tr>
-                
+
                 <!-- Tagline and contact info row -->
                 <tr>
                   <td style="font-size: 11px; color: #ff6600; font-style: italic; padding-top: 5px; white-space: nowrap;">
