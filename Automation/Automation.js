@@ -1069,7 +1069,7 @@ function generateCertificatesByType(type) {
                 
                 // Update the status to show email sent with expiration date
                 sheet.getRange(i + 1, certInfo.statusColumn).setValue(
-                  `Certificate sent (Valid until ${formattedExpDate})`
+                  `Certificate already sent (Valid until ${formattedExpDate})`
                 );
               } catch (emailError) {
                 Logger.log(`Error sending email to ${email}: ${emailError.toString()}`);
